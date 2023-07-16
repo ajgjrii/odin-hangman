@@ -18,6 +18,8 @@ module Words
 
   def game_word(dictionary) # sets game dictionary based on parameters
     @play = dictionary.sample
+    unique_letters = @play.chars.uniq
+    @guesses_to_win = unique_letters.count
   end
 
 end
@@ -29,31 +31,61 @@ module Visuals
     end
   end
 
-def player_turn(letter)
-  add_to_counter = false
 
-  @play.each_char.with_index do |char, index|
-    if letter == char
-      @blanks[index] = letter
-      add_to_counter = true
+
+end
+
+module GamePlay
+  def letter_entry()
+    letter = ""
+
+    loop do
+      print "To guess, input a letter. \n "
+      letter = gets.chomp.downcase
+      break if letter.match?(/^[a-z]$/) && letter.length == 1
+      puts "Invalid entry. Try again."
+    end
+    letter
+  end
+
+  def player_turn(letter)
+    add_to_counter = false
+
+    @play.each_char.with_index do |char, index|
+      if letter == char
+        @blanks[index] = letter
+        add_to_counter = true
+      end
+    end
+
+    if !add_to_counter
+      @incorrect_guesses += 1
+    end
+
+    if add_to_counter
+      @correct_guesses += 1
     end
   end
 
-  if !add_to_counter
-    @incorrect_guesses += 1
+  def game_over_check()
+    if @correct_guesses == @guesses_to_win
+      puts "Congratulations! You are victorious!"
+      @game_over = true
+    end
   end
-end
 
 end
-
 class HangMan
-  include Words, Visuals
-  attr_accessor :play, :blanks, :incorrect_guesses
+  include Words, Visuals, GamePlay
+  attr_accessor :play, :blanks, :incorrect_guesses, :correct_guesses, :game_over
 
   def initialize
     @play = ""
     @blanks = []
     @incorrect_guesses = 0
+    @correct_guesses = 0
+    @guesses_to_win = 0
+    @game_over = false
   end
 
   def blanks
@@ -61,19 +93,28 @@ class HangMan
   end
 
   def guesses
+    puts "There have been #{@correct_guesses} correct guesses so far."
     puts "There have been #{@incorrect_guesses} incorrect guesses so far."
   end
 
 end
 
-game = HangMan.new
-full_dictionary = game.dictionary_to_array('dictionary.txt')
-game_dictionary = game.game_dictionary(5,12,full_dictionary)
-game_word = game.game_word(game_dictionary)
-game.generate_blanks(game_word)
-p game.play
-p game.blanks
-turn = game.player_turn("a")
-puts "Updated blanks below"
-p game.blanks
-game.guesses
+def play_hangman()
+  game = HangMan.new
+  dict = game.dictionary_to_array('dictionary.txt') # reads txt file for dictionary
+  play = game.game_dictionary(5, 12, dict) # only allows 5-12 letter words
+  game.game_word(play) # selects a word from game_dictionary at random
+  game.generate_blanks(game.play) # creates an array of blanks for "game board"
+  p game.blanks # prints the letters to guess
+
+  until game.game_over
+    guess = game.letter_entry
+    game.player_turn(guess)
+    p game.blanks
+    game.guesses
+    game.game_over_check
+  end
+
+end
+
+play_hangman()
