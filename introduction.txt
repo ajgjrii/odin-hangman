@@ -1,0 +1,9 @@
+Let's play Hang Man! You know the rules: guess the letters of a word.
+If you guess incorrectly, we start drawing the hangman :(
+
+If you guess incorrectly 7 times, the game is over.
+
+Do you want to start a new game or finish a previously started game?
+    1 - New Game
+    2 - Finish Old Game
+Input 1 or 2 to make your selection, then press enter.
